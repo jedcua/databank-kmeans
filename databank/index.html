@@ -1,0 +1,82 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>KMeans Clustering</title>
+  <style>
+    #map {
+      height: 100%;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+  function initMap() {
+    const http = new XMLHttpRequest();
+    http.open("GET", '/clusters.json');
+    http.send();
+
+    http.onreadystatechange = (e) => {
+      var json = JSON.parse(http.responseText);
+      generateMap(json);
+    };
+  }
+
+  function addMarker(cluster, member, map) {
+    const infoContent = ''
+      + '<p><b>Establishment:</b> ' + member.establishment + '</p>'
+      + '<p><b>Year Started:</b> ' + member.yearStarted + '</p>'
+      + '<p><b>Daily Income:</b> ' + member.dailyIncome.toLocaleString() + '</p>'
+      + '<p><b>Classification:</b> ' + member.classification + '</p>'
+      + '<p><b>Type of Business:</b> ' + member.typeOfBusiness + '</p>'
+      + '<p><b>Industry:</b> ' + member.industry + '</p>'
+      + '<p><b>Contact Person:</b> ' + member.contactPerson + '</p>'
+      + '<p><b>No. of Employees:</b> ' + member.noOfEmployees.toLocaleString() + '</p>'
+      + '<p><b>Longitude:</b> ' + member.longitude + '</p>'
+      + '<p><b>Latitude:</b> ' + member.latitude + '</p>';
+
+    const info = new google.maps.InfoWindow({
+      content: infoContent
+    });
+
+    const marker = new google.maps.Marker({
+      position: {
+        lat: member.latitude,
+        lng: member.longitude
+      },
+      map: map,
+      label: cluster.label,
+      title: member.establishment
+    });
+    marker.addListener('click', function() {
+      info.open(map, marker);
+    })
+  }
+
+  function generateMap(json) {
+    const origin = {lat: 12.879, lng: 121.774};
+
+    var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 5,
+      center: origin
+    });
+
+    json.clusters.forEach(function(cluster) {
+      cluster.members.forEach(function(member) {
+          addMarker(cluster, member, map)
+      });
+    });
+  }
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=[API_KEY]&callback=initMap">
+</script>
+</body>
+</html>
